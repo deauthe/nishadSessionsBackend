@@ -4,7 +4,11 @@ import { Product } from "../models/productModel.js";
 import { User } from "../models/userModel.js";
 import { Order } from "../models/orderModel.js";
 import { myCache } from "../app.js";
-import { calculatePercentage, getGenres } from "../utils/features.js";
+import {
+	calculatePercentage,
+	getChartData,
+	getGenres,
+} from "../utils/features.js";
 export const getDashboardStats = TryCatch(async (req, res, next) => {
 	let stats = {};
 
@@ -317,7 +321,7 @@ export const getBarCharts = TryCatch(async (req, res, next) => {
 		const twelveMonthsAgo = new Date();
 		twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
-		const sixMonthProductPromise = Product.find({
+		const sixMonthProductPromise: any = Product.find({
 			createdAt: {
 				$gte: sixMonthsAgo,
 				$lte: today,
@@ -331,7 +335,7 @@ export const getBarCharts = TryCatch(async (req, res, next) => {
 			},
 		}).select("createdAt");
 
-		const twelveMonthOrdersPromise = Order.find({
+		const twelveMonthOrdersPromise: any = Order.find({
 			createdAt: {
 				$gte: twelveMonthsAgo,
 				$lte: today,
@@ -381,10 +385,20 @@ export const getLineCharts = TryCatch(async (req, res, next) => {
 			},
 		};
 
+		const twelveMonthProductsPromise: any =
+			Product.find(baseQuery).select("createdAt");
+		const twelveMonthOrderPromise: any = Order.find(baseQuery).select([
+			"createdAt",
+			"discount",
+			"total",
+		]);
+		const twelveMonthUserPromise: any =
+			User.find(baseQuery).select("createdAt");
+
 		const [products, users, orders] = await Promise.all([
-			Product.find(baseQuery).select("createdAt"),
-			User.find(baseQuery).select("createdAt"),
-			Order.find(baseQuery).select(["createdAt", "discount", "total"]),
+			twelveMonthProductsPromise,
+			twelveMonthUserPromise,
+			twelveMonthOrderPromise,
 		]);
 
 		const productCounts = getChartData({ length: 12, today, docArr: products });

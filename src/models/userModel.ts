@@ -27,6 +27,13 @@ const schema = new mongoose.Schema(
 			unique: [true, "this email is already registered"],
 			validate: validator.isEmail,
 		},
+		phone: {
+			type: String,
+			unique: [
+				true,
+				"this phone number is already assiociated with another Id",
+			],
+		},
 		photo: {
 			type: String,
 			default: "test photo",
